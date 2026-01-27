@@ -91,7 +91,7 @@ public class JwtProvider {
 
     private Claims getClaims(String token) {
         return Jwts.parser()
-                .verifyWith(key) // 최신 버전 메서드
+                .verifyWith(key)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -103,5 +103,27 @@ public class JwtProvider {
             return bearerToken.substring(7);
         }
         return null;
+    }
+
+    // 토큰 만료 시간 추출
+    public Long getExpiration(String accessToken) {
+        Date expiration = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(accessToken)
+                .getPayload()
+                .getExpiration();
+
+        long now = new Date().getTime();
+        return (expiration.getTime() - now);
+    }
+
+    public String getLoginId(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
     }
 }

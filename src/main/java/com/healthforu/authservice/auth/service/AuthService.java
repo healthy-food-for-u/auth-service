@@ -5,4 +5,6 @@ import com.healthforu.authservice.user.dto.LoginRequest;
 
 public interface AuthService {
     TokenDto login(LoginRequest loginRequest);
+
+    void logout(String accessToken);
 }
