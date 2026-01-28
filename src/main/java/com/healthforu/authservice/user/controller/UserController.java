@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -22,37 +23,18 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<UserResponse> signUp(@Valid @RequestBody SignUpRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.signUp(request));
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<UserResponse> login(@RequestBody LoginRequest request
-                                            ,HttpServletRequest httpServletRequest) {
-        UserResponse response = userService.login(request, httpServletRequest);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request) {
-        userService.logout(request);
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/user")
-    public ResponseEntity<UserResponse> getCurrentUser(HttpSession session) {
-        String loginId = (String) session.getAttribute("LOGIN_USER");
-        if (loginId == null) {
+    public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
+        // JwtFilter가 블랙리스트 검증 후 SecurityContext에 담아준 인증 객체
+        if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
+        // 토큰 생성 시 넣었던 loginId(Subject) 반환
+        String loginId = authentication.getName();
 
         return ResponseEntity.ok(userService.getUserByLoginId(loginId));
     }
 
-    @GetMapping("/check-id")
-    public ResponseEntity<Map<String, Boolean>> checkId(@RequestParam("id") String loginId) {
-        boolean exists = userService.checkLoginIdDuplicate(loginId);
-        return ResponseEntity.ok(Map.of("exists", exists));
-    }
+
 }

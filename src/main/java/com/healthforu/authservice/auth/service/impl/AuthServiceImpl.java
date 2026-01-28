@@ -1,11 +1,15 @@
 package com.healthforu.authservice.auth.service.impl;
 
+import com.healthforu.authservice.auth.dto.CustomUserDetails;
 import com.healthforu.authservice.auth.dto.TokenDto;
 import com.healthforu.authservice.auth.service.AuthService;
+import com.healthforu.authservice.common.exception.custom.UserNotFoundException;
 import com.healthforu.authservice.common.util.JwtProvider;
 import com.healthforu.authservice.redis.repository.RefreshTokenRepository;
 import com.healthforu.authservice.redis.util.RefreshToken;
+import com.healthforu.authservice.user.domain.User;
 import com.healthforu.authservice.user.dto.LoginRequest;
+import com.healthforu.authservice.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +27,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProvider jwtProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final UserRepository userRepository;
 
     @Override
     public TokenDto login(LoginRequest loginRequest) {
@@ -31,13 +36,22 @@ public class AuthServiceImpl implements AuthService {
 
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
         // 인증 정보를 기반으로 JWT 토큰 생성
         String accessToken = jwtProvider.generateToken(authentication);
         String refreshToken = jwtProvider.generateRefreshToken(authentication);
 
         refreshTokenRepository.save(new RefreshToken(authentication.getName(), refreshToken));
 
-        return TokenDto.from(accessToken, refreshToken);
+
+
+        return TokenDto.from(accessToken,
+                refreshToken,
+                userDetails.getId(),
+                userDetails.getUsername(), // loginId
+                userDetails.getUserName() // userName
+        );
     }
 
     @Override

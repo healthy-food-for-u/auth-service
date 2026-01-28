@@ -1,5 +1,6 @@
 package com.healthforu.authservice.common.util;
 
+import com.healthforu.authservice.auth.dto.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -24,7 +25,7 @@ public class JwtProvider {
     private final long expireTime;
     private SecretKey key; // 주입받은 문자열을 Key 객체로 변환해서 보관
 
-    public JwtProvider(@Value("${jwt.token.secret-key}") String secretKey,
+    public JwtProvider(@Value("${jwt.secret}") String secretKey,
                        @Value("${jwt.token.expire-time}") long expireTime) {
         this.secretKeyStr = secretKey;
         this.expireTime = expireTime;
@@ -38,25 +39,26 @@ public class JwtProvider {
 
     // 토큰 생성
     public String generateToken(Authentication authentication) {
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String userId = userDetails.getId();
 
         Date now = new Date();
 
         return Jwts.builder()
-                .subject(authentication.getName())
-                .claim("auth", authorities) // 권한 정보 추가
+                .setSubject(userId) // 여기에 ObjectId를 넣어야 Gateway가 이걸 읽어서 넘깁니다!
+                .claim("auth", "ROLE_USER")
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expireTime))
                 .signWith(key) // 최신 방식
                 .compact();
+
     }
 
     // Refresh Token 생성
     public String generateRefreshToken(Authentication authentication) {
         Date now = new Date();
-        // 일주일(7일)
+        // 일주일
         long refreshTokenExpireTime = 7 * 24 * 60 * 60 * 1000L;
 
         return Jwts.builder()
