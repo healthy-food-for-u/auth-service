@@ -22,13 +22,13 @@
 
 ## API 라우팅 설계
 
-| 컨트롤러명       | 요청 경로 (Path)         | 리턴값                 | 인증(JWT) 여부 |
-|:------------|:---------------------|:--------------------|:----------:|
-| **Login**   | `/api/auth/login`    | `TokenDto`   |     X      |
-| **Logout**  | `/api/auth/logout`   | `String` (Success Message)         |     X      |
-| **signUp**  | `/api/auth/signup`   | `UserResponse`    |     X      |
-| **checkId** | `/api/auth/check-id` | `Map<String, Boolean>` |     X      |
-| **getCurrentUser** | `/api/users/user`    | `UserResponse` |     **O**      |
+| 컨트롤러명       | 요청 경로 (Path)             | 리턴값                 | 인증(JWT) 여부 |
+|:------------|:-------------------------|:--------------------|:----------:|
+| **Login**   | `POST /api/auth/login`   | `TokenDto`   |     X      |
+| **Logout**  | `POST /api/auth/logout`  | `String` (Success Message)         |     X      |
+| **signUp**  | `POST /api/auth/signup`  | `UserResponse`    |     X      |
+| **checkId** | `GET /api/auth/check-id` | `Map<String, Boolean>` |     X      |
+| **getCurrentUser** | `GET /api/users/user`    | `UserResponse` |     **O**      |
 
 ---
 
